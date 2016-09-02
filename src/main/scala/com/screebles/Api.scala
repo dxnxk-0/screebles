@@ -2,11 +2,13 @@ package com.screebles
 
 import akka.actor.Actor
 import net.liftweb.json._
+import redis.clients.jedis.params.geo.GeoRadiusParam
 import redis.clients.jedis.{GeoUnit, Jedis}
 import spray.http.MediaTypes._
 import spray.http.StatusCodes
 import spray.httpx.unmarshalling.Unmarshaller
 import spray.routing._
+
 import scala.collection.JavaConverters._
 
 // we don't implement our route structure directly in the service actor because
@@ -61,7 +63,11 @@ trait Api extends HttpService {
             parameters('wall.as[String], 'lat.as[Double], 'lon.as[Double], 'radius.as[Double]) { (wall, lat, lon, radius) =>
               complete {
                 prettyRender {
-                  JArray(redis.georadius(wall, lon, lat, radius, GeoUnit.KM).asScala.map(s => JString(s.getMemberByString)).toList)
+                  JArray(
+                    redis.georadius(wall, lon, lat, radius, GeoUnit.KM, GeoRadiusParam.geoRadiusParam().withDist()
+                  ).asScala.map { s =>
+                    JObject(JField("dist", JDouble(s.getDistance)), JField("screeble", JString(s.getMemberByString)))
+                  }.toList)
                 }
               }
             }

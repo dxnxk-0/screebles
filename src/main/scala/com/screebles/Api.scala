@@ -64,7 +64,7 @@ trait Api extends HttpService {
               complete {
                 prettyRender {
                   JArray(
-                    redis.georadius(wall, lon, lat, radius, GeoUnit.KM, GeoRadiusParam.geoRadiusParam().withDist()
+                    redis.georadius(wall, lon, lat, radius, GeoUnit.M, GeoRadiusParam.geoRadiusParam().withDist()
                   ).asScala.map { s =>
                     JObject(JField("dist", JDouble(s.getDistance)), JField("screeble", JString(s.getMemberByString)))
                   }.toList)
